@@ -1,0 +1,62 @@
+{
+  "project_info": {
+    "project_number": "468514665975",
+    "project_id": "b-todo-27c32",
+    "storage_bucket": "b-todo-27c32.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:468514665975:android:b6b9b235966cdcaf69eaf2",
+        "android_client_info": {
+          "package_name": "com.ashir.btodoo2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "468514665975-2jkiigjqg4srdvb5ltcmgp14jn40116u.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ashir.btodoo2",
+            "certificate_hash": "ec6ccf21801707d9aa638723ad97cc4635369a5a"
+          }
+        },
+        {
+          "client_id": "468514665975-t6pg5b7l0etrk65h4rprcnhvp4s17jvu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ashir.btodoo2",
+            "certificate_hash": "54407c651247bd661f2609891296280bb5c5e6af"
+          }
+        },
+        {
+          "client_id": "468514665975-of79du0slaq44nmj8k008mcdb0589tgp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBfE84FJzPAebPMQ78uZaL4cWufeEBcqgw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "468514665975-of79du0slaq44nmj8k008mcdb0589tgp.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "468514665975-ckh8mt5lrk47kgi336mqi70l6ccjju4u.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.bTodo"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
