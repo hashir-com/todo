@@ -19,14 +19,14 @@ class FormFieldsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 4,
+      elevation: 8,
       shadowColor: AppColors.primary.withOpacity(0.2),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           gradient: LinearGradient(
             colors: [
               Colors.white,
@@ -36,7 +36,7 @@ class FormFieldsCard extends StatelessWidget {
             end: Alignment.bottomRight,
           ),
         ),
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(15),
         child: Column(
           children: [
             CustomTextField(
@@ -53,7 +53,7 @@ class FormFieldsCard extends StatelessWidget {
               label: 'Description',
               hint: 'Update task description',
               prefixIcon: Icons.description_outlined,
-              maxLines: 4,
+              maxLines: 2,
               enabled: enabled,
             ),
           ],

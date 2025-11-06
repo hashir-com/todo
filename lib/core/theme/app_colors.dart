@@ -7,9 +7,9 @@ class AppColors {
   static const Color primaryLight = Color(0xFF818CF8);
 
   // Priority colors
-  static const Color highPriority = Color(0xFFEF4444);
-  static const Color mediumPriority = Color(0xFFF59E0B);
-  static const Color lowPriority = Color(0xFF10B981);
+  static const Color highPriority = Color.fromARGB(255, 238, 30, 30);
+  static const Color mediumPriority = Color.fromARGB(255, 255, 164, 6);
+  static const Color lowPriority = Color.fromARGB(255, 11, 225, 97);
 
   // Status
   static const Color completed = Color(0xFF22C55E);

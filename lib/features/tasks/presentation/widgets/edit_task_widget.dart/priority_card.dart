@@ -16,27 +16,35 @@ class PriorityCard extends ConsumerWidget {
     required this.isLoading,
   });
 
+  Color _getPriorityColor(TaskPriority priority) {
+    switch (priority) {
+      case TaskPriority.high:
+        return AppColors.highPriority;
+      case TaskPriority.medium:
+        return AppColors.mediumPriority;
+      case TaskPriority.low:
+        return AppColors.lowPriority;
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(editTaskNotifierProvider(task));
     final notifier = ref.read(editTaskNotifierProvider(task).notifier);
+    final currentPriorityColor = _getPriorityColor(state.selectedPriority);
 
     return Card(
-      elevation: 4,
-      shadowColor: AppColors.mediumPriority.withOpacity(0.2),
+      elevation: 10,
+      shadowColor: currentPriorityColor.withOpacity(0.3),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(30),
       ),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            colors: [
-              Colors.white,
-              Colors.amber.shade50,
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(
+            color: currentPriorityColor.withOpacity(0.2),
+            width: 1.5,
           ),
         ),
         padding: const EdgeInsets.all(20),

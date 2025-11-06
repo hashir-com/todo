@@ -1,4 +1,6 @@
 // lib/features/tasks/presentation/widgets/due_date_card.dart
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:todo_app_pro/core/theme/app_colors.dart';
 
@@ -27,10 +29,10 @@ class DueDateCard extends StatelessWidget {
         curve: Curves.easeInOut,
         margin: const EdgeInsets.only(bottom: 24),
         child: Card(
-          elevation: 6,
+          elevation: 10,
           shadowColor: AppColors.primary.withOpacity(0.3),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(26),
           ),
           child: InkWell(
             borderRadius: BorderRadius.circular(16),
@@ -39,16 +41,8 @@ class DueDateCard extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.white,
-                    Colors.blue.shade50,
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
               ),
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(15),
               child: Row(
                 children: [
                   Hero(
