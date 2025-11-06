@@ -86,7 +86,7 @@ class StatusToggleCard extends ConsumerWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Cannot complete or reschedule',
+                            'Cannot complete',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.red.withOpacity(0.7),
@@ -143,23 +143,26 @@ class StatusToggleCard extends ConsumerWidget {
                       child: Switch(
                         key: ValueKey(switchValue),
                         value: switchValue,
-                        onChanged: isLoading ? null : (value) async {
-                          // Optimistic update
-                          notifier.updateIsCompleted(value);
-                          final error = await taskNotifier.toggleTaskStatus(task.id);
-                          if (error != null) {
-                            // Revert on error
-                            notifier.updateIsCompleted(!value);
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(error),
-                                  backgroundColor: AppColors.error,
-                                ),
-                              );
-                            }
-                          }
-                        },
+                        onChanged: isLoading
+                            ? null
+                            : (value) async {
+                                // Optimistic update
+                                notifier.updateIsCompleted(value);
+                                final error = await taskNotifier
+                                    .toggleTaskStatus(task.id);
+                                if (error != null) {
+                                  // Revert on error
+                                  notifier.updateIsCompleted(!value);
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(error),
+                                        backgroundColor: AppColors.error,
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
                         activeColor: AppColors.completed,
                         activeTrackColor: AppColors.completed.withOpacity(0.3),
                       ),

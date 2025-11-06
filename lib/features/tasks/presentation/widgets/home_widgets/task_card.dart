@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -13,6 +15,9 @@ class TaskCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isCompact = screenWidth < 360;
+
     return Dismissible(
       key: Key(task.id),
       direction: DismissDirection.endToStart,
@@ -38,28 +43,46 @@ class TaskCard extends ConsumerWidget {
           MaterialPageRoute(builder: (_) => EditTaskPage(task: task)),
         ),
         child: Container(
-          margin: const EdgeInsets.only(bottom: 12),
+          margin: EdgeInsets.only(
+            bottom: 12,
+            left: screenWidth * 0.02,
+            right: screenWidth * 0.02,
+          ),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white,
+                Colors.grey.shade50,
+              ],
+            ),
+            borderRadius: BorderRadius.circular(30),
             border: Border.all(
-              color: _getPriorityColor(task.priority).withOpacity(0.25),
+              color: _getPriorityColor(task.priority).withOpacity(0.3),
+              width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: _getPriorityColor(task.priority).withOpacity(0.1),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+                spreadRadius: 0,
+              ),
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
             ],
           ),
-          padding: const EdgeInsets.all(14),
+          padding: EdgeInsets.all(isCompact ? 12 : 16),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildCheckbox(context, ref),
-              const SizedBox(width: 12),
-              Expanded(child: _buildTaskContent(context, ref)),
+              _buildCheckbox(context, ref, isCompact),
+              SizedBox(width: isCompact ? 8 : 10),
+              Expanded(child: _buildTaskContent(context, ref, isCompact)),
             ],
           ),
         ),
@@ -72,15 +95,19 @@ class TaskCard extends ConsumerWidget {
   Widget _buildDeleteBackground() => Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: AppColors.error,
-          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            colors: [AppColors.error, AppColors.error.withOpacity(0.8)],
+          ),
+          borderRadius: BorderRadius.circular(20),
         ),
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        child: const Icon(Icons.delete_rounded, color: Colors.white, size: 26),
+        padding: const EdgeInsets.only(right: 24),
+        child: const Icon(Icons.delete_rounded, color: Colors.white, size: 28),
       );
 
-  Widget _buildCheckbox(BuildContext context, WidgetRef ref) {
+  Widget _buildCheckbox(BuildContext context, WidgetRef ref, bool isCompact) {
+    final size = isCompact ? 22.0 : 26.0;
+
     return GestureDetector(
       onTap: () async {
         if (task.status == TaskStatus.overdue && task.permanentlyOverdue) {
@@ -97,25 +124,39 @@ class TaskCard extends ConsumerWidget {
         }
       },
       child: Container(
-        width: 24,
-        height: 24,
+        width: size,
+        height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
             color:
                 task.isCompleted ? AppColors.completed : Colors.grey.shade400,
-            width: 2,
+            width: 2.5,
           ),
           color: task.isCompleted ? AppColors.completed : Colors.transparent,
+          boxShadow: task.isCompleted
+              ? [
+                  BoxShadow(
+                    color: AppColors.completed.withOpacity(0.3),
+                    blurRadius: 8,
+                    spreadRadius: 1,
+                  ),
+                ]
+              : null,
         ),
         child: task.isCompleted
-            ? const Icon(Icons.check, size: 15, color: Colors.white)
+            ? Icon(
+                Icons.check_rounded,
+                size: isCompact ? 14 : 16,
+                color: Colors.white,
+              )
             : null,
       ),
     );
   }
 
-  Widget _buildTaskContent(BuildContext context, WidgetRef ref) {
+  Widget _buildTaskContent(
+      BuildContext context, WidgetRef ref, bool isCompact) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -123,48 +164,52 @@ class TaskCard extends ConsumerWidget {
         Text(
           task.title,
           style: TextStyle(
-            fontSize: 16,
+            fontSize: isCompact ? 15 : 16.5,
             fontWeight: FontWeight.w600,
             decoration: task.isCompleted ? TextDecoration.lineThrough : null,
             color: task.isCompleted ? Colors.grey : Colors.black87,
+            height: 1.3,
           ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
         ),
 
         // Description
         if (task.description.isNotEmpty) ...[
-          const SizedBox(height: 4),
+          SizedBox(height: isCompact ? 4 : 6),
           Text(
             task.description,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: 13.5,
+              fontSize: isCompact ? 12.5 : 13.5,
               color: Colors.grey[600],
               decoration: task.isCompleted ? TextDecoration.lineThrough : null,
+              height: 1.4,
             ),
           ),
         ],
 
-        const SizedBox(height: 10),
+        SizedBox(height: isCompact ? 8 : 12),
 
-        // Bottom Row
-        Row(
+        // Bottom Row - Responsive Wrap
+        Wrap(
+          spacing: isCompact ? 6 : 8,
+          runSpacing: isCompact ? 6 : 8,
           children: [
             _buildInfoBadge(
               icon: Icons.calendar_today_rounded,
               text: _formatDate(task.dueDate),
               color: _getDateColor(task),
+              isCompact: isCompact,
             ),
-            const SizedBox(width: 8),
             _buildInfoBadge(
               icon: _getPriorityIcon(task.priority),
               text: _getPriorityText(task.priority),
               color: _getPriorityColor(task.priority),
+              isCompact: isCompact,
             ),
-            if (task.isOverdue) ...[
-              const SizedBox(width: 8),
-              _buildOverdueBadge(task),
-            ],
+            if (task.isOverdue) _buildOverdueBadge(task, isCompact),
           ],
         ),
       ],
@@ -175,24 +220,43 @@ class TaskCard extends ConsumerWidget {
     required IconData icon,
     required String text,
     required Color color,
+    required bool isCompact,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(
+        horizontal: isCompact ? 6 : 8,
+        vertical: isCompact ? 5 : 6,
+      ),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
+        gradient: LinearGradient(
+          colors: [
+            color.withOpacity(0.9),
+            color,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.3),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: color),
-          const SizedBox(width: 4),
+          Icon(icon, size: isCompact ? 13 : 14, color: Colors.white),
+          SizedBox(width: isCompact ? 4 : 5),
           Text(
             text,
             style: TextStyle(
-              fontSize: 12,
-              color: color,
-              fontWeight: FontWeight.w500,
+              fontSize: isCompact ? 11 : 12,
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.3,
             ),
           ),
         ],
@@ -200,9 +264,9 @@ class TaskCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildOverdueBadge(TaskEntity task) {
+  Widget _buildOverdueBadge(TaskEntity task, bool isCompact) {
     if (task.permanentlyOverdue) {
-      return _buildLockedBadge();
+      return _buildLockedBadge(isCompact);
     }
 
     return StreamBuilder<DateTime>(
@@ -216,39 +280,98 @@ class TaskCard extends ConsumerWidget {
         final graceEnd = task.dueDate.add(const Duration(hours: 24));
         final remaining = graceEnd.difference(now);
         final isExpired = remaining.isNegative;
+        final badgeColor = isExpired ? AppColors.error : AppColors.overdue;
+
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: (isExpired ? AppColors.error : AppColors.overdue)
-                .withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
+          padding: EdgeInsets.symmetric(
+            horizontal: isCompact ? 8 : 10,
+            vertical: isCompact ? 5 : 6,
           ),
-          child: Text(
-            isExpired ? 'LOCKED' : _formatRemainingTime(remaining),
-            style: TextStyle(
-              fontSize: 10,
-              color: isExpired ? AppColors.error : AppColors.overdue,
-              fontWeight: FontWeight.bold,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                badgeColor.withOpacity(0.9),
+                badgeColor,
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: badgeColor.withOpacity(0.3),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isExpired ? Icons.lock_rounded : Icons.timer_rounded,
+                size: isCompact ? 11 : 12,
+                color: Colors.white,
+              ),
+              SizedBox(width: isCompact ? 3 : 4),
+              Text(
+                isExpired ? 'LOCKED' : _formatRemainingTime(remaining),
+                style: TextStyle(
+                  fontSize: isCompact ? 10 : 11,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
           ),
         );
       },
     );
   }
 
-  Widget _buildLockedBadge() => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: AppColors.error.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(8),
+  Widget _buildLockedBadge(bool isCompact) => Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: isCompact ? 8 : 10,
+          vertical: isCompact ? 5 : 6,
         ),
-        child: const Text(
-          'LOCKED',
-          style: TextStyle(
-            fontSize: 10,
-            color: AppColors.error,
-            fontWeight: FontWeight.bold,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppColors.error.withOpacity(0.9),
+              AppColors.error,
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.error.withOpacity(0.3),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.lock_rounded,
+              size: isCompact ? 11 : 12,
+              color: Colors.white,
+            ),
+            SizedBox(width: isCompact ? 3 : 4),
+            Text(
+              'LOCKED',
+              style: TextStyle(
+                fontSize: isCompact ? 10 : 11,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
         ),
       );
 
@@ -258,6 +381,7 @@ class TaskCard extends ConsumerWidget {
     return await showDialog(
       context: context,
       builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Delete Task'),
         content: const Text('Are you sure you want to delete this task?'),
         actions: [
@@ -279,6 +403,7 @@ class TaskCard extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Locked Task'),
         content: const Text(
           'This task is permanently overdue and cannot be marked as complete.',
@@ -330,7 +455,7 @@ class TaskCard extends ConsumerWidget {
     if (task.isCompleted) return AppColors.completed;
     if (task.isOverdue) return AppColors.overdue;
     if (task.dueDate.isToday) return AppColors.mediumPriority;
-    return Colors.grey.shade600;
+    return Colors.grey.shade700;
   }
 
   String _formatDate(DateTime date) {

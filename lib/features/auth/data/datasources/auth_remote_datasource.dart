@@ -7,7 +7,8 @@ import '../models/user_model.dart';
 abstract class AuthRemoteDataSource {
   Future<UserModel> signInWithEmail(String email, String password);
   Future<UserModel> signInWithGoogle();
-  Future<UserModel> signUpWithEmail(String email, String password, String displayName);
+  Future<UserModel> signUpWithEmail(
+      String email, String password, String displayName);
   Future<void> signOut();
   Future<UserModel?> getCurrentUser();
   Future<void> resetPassword(String email);
@@ -49,13 +50,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       // Trigger Google Sign In
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-      
+
       if (googleUser == null) {
         throw ServerException('Google sign in cancelled');
       }
 
       // Obtain auth details
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
 
       // Create credential
       final credential = GoogleAuthProvider.credential(
@@ -64,16 +66,34 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
 
       // Sign in to Firebase
-      final userCredential = await firebaseAuth.signInWithCredential(credential);
+      final userCredential =
+          await firebaseAuth.signInWithCredential(credential);
 
       if (userCredential.user == null) {
         throw ServerException('Google sign in failed');
       }
 
-      final user = _userFromFirebase(userCredential.user!);
+      // Reload user to get fresh data
+      await userCredential.user!.reload();
+      final freshUser = firebaseAuth.currentUser;
 
-      // Save user to Firestore
-      await _saveUserToFirestore(user);
+      if (freshUser == null) {
+        throw ServerException('Failed to get user data');
+      }
+
+      // Create user model directly without additional processing
+      final user = UserModel(
+        id: freshUser.uid,
+        email: freshUser.email ?? googleUser.email,
+        displayName: freshUser.displayName ?? googleUser.displayName ?? '',
+        photoUrl: freshUser.photoURL ?? googleUser.photoUrl,
+        createdAt: freshUser.metadata.creationTime ?? DateTime.now(),
+      );
+
+      // Save user to Firestore (non-blocking)
+      _saveUserToFirestore(user).catchError((error) {
+        print('Firestore save error: $error');
+      });
 
       return user;
     } on FirebaseAuthException catch (e) {
@@ -103,7 +123,19 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await credential.user!.updateDisplayName(displayName);
       await credential.user!.reload();
 
-      final user = _userFromFirebase(firebaseAuth.currentUser!);
+      final freshUser = firebaseAuth.currentUser;
+
+      if (freshUser == null) {
+        throw ServerException('Failed to get user data');
+      }
+
+      final user = UserModel(
+        id: freshUser.uid,
+        email: freshUser.email ?? email,
+        displayName: freshUser.displayName ?? displayName,
+        photoUrl: freshUser.photoURL,
+        createdAt: freshUser.metadata.creationTime ?? DateTime.now(),
+      );
 
       // Save to Firestore
       await _saveUserToFirestore(user);
@@ -134,7 +166,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       final user = firebaseAuth.currentUser;
       if (user == null) return null;
-      return _userFromFirebase(user);
+
+      return UserModel(
+        id: user.uid,
+        email: user.email ?? '',
+        displayName: user.displayName ?? '',
+        photoUrl: user.photoURL,
+        createdAt: user.metadata.creationTime ?? DateTime.now(),
+      );
     } catch (e) {
       throw ServerException('Failed to get current user');
     }
@@ -165,7 +204,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Stream<UserModel?> get authStateChanges {
     return firebaseAuth.authStateChanges().map((user) {
       if (user == null) return null;
-      return _userFromFirebase(user);
+
+      return UserModel(
+        id: user.uid,
+        email: user.email ?? '',
+        displayName: user.displayName ?? '',
+        photoUrl: user.photoURL,
+        createdAt: user.metadata.creationTime ?? DateTime.now(),
+      );
     });
   }
 
@@ -173,21 +219,27 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   UserModel _userFromFirebase(User user) {
     return UserModel(
       id: user.uid,
-      email: user.email!,
-      displayName: user.displayName,
+      email: user.email ?? '',
+      displayName: user.displayName ?? '',
       photoUrl: user.photoURL,
       createdAt: user.metadata.creationTime ?? DateTime.now(),
     );
   }
 
   Future<void> _saveUserToFirestore(UserModel user) async {
-    await firestore.collection('users').doc(user.id).set({
-      'email': user.email,
-      'displayName': user.displayName,
-      'photoUrl': user.photoUrl,
-      'createdAt': user.createdAt.toIso8601String(),
-      'updatedAt': DateTime.now().toIso8601String(),
-    }, SetOptions(merge: true));
+    try {
+      await firestore.collection('users').doc(user.id).set({
+        'email': user.email,
+        'displayName': user.displayName,
+        'photoUrl': user.photoUrl,
+        'createdAt': user.createdAt.toIso8601String(),
+        'updatedAt': DateTime.now().toIso8601String(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      // Log error but don't throw to prevent blocking the sign-in flow
+      print('Error saving to Firestore: $e');
+      rethrow;
+    }
   }
 
   String _handleAuthError(FirebaseAuthException e) {

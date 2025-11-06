@@ -33,7 +33,8 @@ class _EditTaskPageState extends ConsumerState<EditTaskPage>
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.task.title);
-    _descriptionController = TextEditingController(text: widget.task.description);
+    _descriptionController =
+        TextEditingController(text: widget.task.description);
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -76,7 +77,9 @@ class _EditTaskPageState extends ConsumerState<EditTaskPage>
     );
 
     if (picked != null) {
-      ref.read(editTaskNotifierProvider(widget.task).notifier).updateDate(picked);
+      ref
+          .read(editTaskNotifierProvider(widget.task).notifier)
+          .updateDate(picked);
     }
   }
 
@@ -120,7 +123,9 @@ class _EditTaskPageState extends ConsumerState<EditTaskPage>
         title: const Text('Delete Task'),
         content: const Text('Are you sure you want to delete this task?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel')),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -146,7 +151,9 @@ class _EditTaskPageState extends ConsumerState<EditTaskPage>
       );
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Task deleted successfully!'), backgroundColor: AppColors.completed),
+        const SnackBar(
+            content: Text('Task deleted successfully!'),
+            backgroundColor: AppColors.completed),
       );
       Navigator.pop(context);
     }
@@ -156,7 +163,8 @@ class _EditTaskPageState extends ConsumerState<EditTaskPage>
   Widget build(BuildContext context) {
     final state = ref.watch(editTaskNotifierProvider(widget.task));
     final now = DateTime.now();
-    final isLocked = widget.task.status == TaskStatus.overdue && widget.task.permanentlyOverdue;
+    final isLocked = widget.task.status == TaskStatus.overdue &&
+        widget.task.permanentlyOverdue;
     final switchValue = state.selectedIsCompleted;
     final isDuePast = state.selectedDate.isBefore(now);
 
@@ -181,7 +189,9 @@ class _EditTaskPageState extends ConsumerState<EditTaskPage>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Task', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Edit Task',
+            style: TextStyle(
+                color: AppColors.background, fontWeight: FontWeight.bold)),
         elevation: 0,
         backgroundColor: Colors.transparent,
         flexibleSpace: Container(

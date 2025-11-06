@@ -78,6 +78,7 @@ class TaskListView extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 12),
               child: TaskCard(task: task),
             ),
+            
           );
         },
         childCount: sortedTasks.length,

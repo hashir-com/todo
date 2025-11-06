@@ -29,7 +29,8 @@ class SignUpState {
     return SignUpState(
       isLoading: isLoading ?? this.isLoading,
       obscurePassword: obscurePassword ?? this.obscurePassword,
-      obscureConfirmPassword: obscureConfirmPassword ?? this.obscureConfirmPassword,
+      obscureConfirmPassword:
+          obscureConfirmPassword ?? this.obscureConfirmPassword,
       error: error ?? this.error,
     );
   }
@@ -43,7 +44,8 @@ class SignUpNotifier extends StateNotifier<SignUpState> {
   }
 
   void toggleObscureConfirmPassword() {
-    state = state.copyWith(obscureConfirmPassword: !state.obscureConfirmPassword);
+    state =
+        state.copyWith(obscureConfirmPassword: !state.obscureConfirmPassword);
   }
 
   Future<void> signUpWithEmail({
@@ -218,9 +220,12 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                   enabled: !state.isLoading,
                   suffixIcon: IconButton(
                     icon: Icon(
-                      state.obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                      state.obscurePassword
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
                     ),
-                    onPressed: state.isLoading ? null : notifier.toggleObscurePassword,
+                    onPressed:
+                        state.isLoading ? null : notifier.toggleObscurePassword,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -240,7 +245,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                           ? Icons.visibility_outlined
                           : Icons.visibility_off_outlined,
                     ),
-                    onPressed: state.isLoading ? null : notifier.toggleObscureConfirmPassword,
+                    onPressed: state.isLoading
+                        ? null
+                        : notifier.toggleObscureConfirmPassword,
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -281,11 +288,12 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
 
                 // Google Sign In
                 SocialLoginButton(
-                  icon: 'assets/images/google_logo.png',
-                  text: 'Continue with Google',
-                  onPressed: state.isLoading ? null : () async {
-                    await notifier.signInWithGoogle(authNotifier);
-                  },
+                  icon: 'assets/images/google signin.svg',
+                  onPressed: state.isLoading
+                      ? null
+                      : () async {
+                          await notifier.signInWithGoogle(authNotifier);
+                        },
                 ),
                 const SizedBox(height: 24),
 
@@ -298,7 +306,8 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                       style: TextStyle(color: Colors.grey[600]),
                     ),
                     TextButton(
-                      onPressed: state.isLoading ? null : () => Navigator.pop(context),
+                      onPressed:
+                          state.isLoading ? null : () => Navigator.pop(context),
                       child: const Text('Login'),
                     ),
                   ],

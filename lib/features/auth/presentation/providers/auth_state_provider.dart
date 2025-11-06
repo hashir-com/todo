@@ -9,6 +9,7 @@ import '../../../../core/usecases/usecase.dart';
 import 'auth_provider.dart';
 
 final obscurePasswordProvider = StateProvider<bool>((ref) => true);
+
 // Auth state notifier
 class AuthStateNotifier extends StateNotifier<AsyncValue<UserEntity?>> {
   final SignInWithEmail signInWithEmailUseCase;
@@ -23,11 +24,11 @@ class AuthStateNotifier extends StateNotifier<AsyncValue<UserEntity?>> {
     required this.signUpWithEmailUseCase,
     required this.signOutUseCase,
     required this.resetPasswordUseCase,
-  }) : super(const AsyncValue.loading());
+  }) : super(const AsyncValue.data(null));
 
   Future<String?> signInWithEmail(String email, String password) async {
     state = const AsyncValue.loading();
-    
+
     final result = await signInWithEmailUseCase(
       SignInWithEmailParams(email: email, password: password),
     );
@@ -46,7 +47,7 @@ class AuthStateNotifier extends StateNotifier<AsyncValue<UserEntity?>> {
 
   Future<String?> signInWithGoogle() async {
     state = const AsyncValue.loading();
-    
+
     final result = await signInWithGoogleUseCase(NoParams());
 
     return result.fold(
@@ -67,7 +68,7 @@ class AuthStateNotifier extends StateNotifier<AsyncValue<UserEntity?>> {
     required String displayName,
   }) async {
     state = const AsyncValue.loading();
-    
+
     final result = await signUpWithEmailUseCase(
       SignUpWithEmailParams(
         email: email,
