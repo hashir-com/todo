@@ -48,6 +48,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<UserModel> signInWithGoogle() async {
     try {
+      // Sign out first to ensure clean state
+      await googleSignIn.signOut();
+
       // Trigger Google Sign In
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
 
@@ -58,6 +61,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       // Obtain auth details
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
+
+      // Verify we have the required tokens
+      if (googleAuth.accessToken == null || googleAuth.idToken == null) {
+        throw ServerException('Failed to get authentication tokens');
+      }
 
       // Create credential
       final credential = GoogleAuthProvider.credential(
@@ -73,32 +81,61 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw ServerException('Google sign in failed');
       }
 
-      // Reload user to get fresh data
-      await userCredential.user!.reload();
-      final freshUser = firebaseAuth.currentUser;
+      // Get the fresh user data
+      final freshUser = userCredential.user!;
 
-      if (freshUser == null) {
-        throw ServerException('Failed to get user data');
-      }
-
-      // Create user model directly without additional processing
+      // Create user model with fallback values
       final user = UserModel(
         id: freshUser.uid,
         email: freshUser.email ?? googleUser.email,
-        displayName: freshUser.displayName ?? googleUser.displayName ?? '',
+        displayName: freshUser.displayName ??
+            googleUser.displayName ??
+            googleUser.email.split('@').first,
         photoUrl: freshUser.photoURL ?? googleUser.photoUrl,
         createdAt: freshUser.metadata.creationTime ?? DateTime.now(),
       );
 
-      // Save user to Firestore (non-blocking)
+      // Save user to Firestore asynchronously
       _saveUserToFirestore(user).catchError((error) {
-        print('Firestore save error: $error');
+        print('Firestore save error (non-blocking): $error');
       });
 
       return user;
     } on FirebaseAuthException catch (e) {
+      // Sign out on error
+      await googleSignIn.signOut().catchError((_) {});
       throw ServerException(_handleAuthError(e));
+    } on ServerException {
+      // Sign out on error
+      await googleSignIn.signOut().catchError((_) {});
+      rethrow;
     } catch (e) {
+      // Sign out on any error
+      await googleSignIn.signOut().catchError((_) {});
+
+      // Check if it's the type cast error
+      if (e.toString().contains('is not a subtype')) {
+        // The sign-in might have actually succeeded
+        // Try to get the current user
+        final currentUser = firebaseAuth.currentUser;
+        if (currentUser != null) {
+          final user = UserModel(
+            id: currentUser.uid,
+            email: currentUser.email ?? '',
+            displayName: currentUser.displayName ??
+                currentUser.email?.split('@').first ??
+                '',
+            photoUrl: currentUser.photoURL,
+            createdAt: currentUser.metadata.creationTime ?? DateTime.now(),
+          );
+
+          // Save to Firestore
+          _saveUserToFirestore(user).catchError((_) {});
+
+          return user;
+        }
+      }
+
       throw ServerException('Google sign in failed: ${e.toString()}');
     }
   }
@@ -260,6 +297,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         return 'Too many attempts. Please try again later';
       case 'operation-not-allowed':
         return 'Operation not allowed';
+      case 'network-request-failed':
+        return 'Network error. Please check your connection';
       default:
         return 'Authentication failed: ${e.message}';
     }

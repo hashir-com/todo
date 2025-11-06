@@ -192,7 +192,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                   label: 'Full Name',
                   hint: 'Enter your full name',
                   prefixIcon: Icons.person_outline,
-                  validator: (value) => Validators.required(value, 'Name'),
+                  validator: (value) => Validators.name(value),
                   enabled: !state.isLoading,
                 ),
                 const SizedBox(height: 16),
